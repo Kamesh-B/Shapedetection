@@ -15,7 +15,7 @@ cv2.namedWindow("Parameters")
 
 cv2.resizewindow("Parameters"1640, 240)
 cv2. createTrackbar ("Threshold1","Parameters",23,255, empty)
-c2.createTrackbar ("Threshold2","Parameters",20,255, empty)
+cv2.createTrackbar ("Threshold2","Parameters",20,255, empty)
 cv2.createTrackbar ("Area","Parameters",5000, 30000, empty)
 
 def stackImages (scale, imgArray.):
@@ -49,6 +49,27 @@ def stackImages (scale, imgArray.):
         hor= np.hstack(imgArray)
         ver = hor
     return ver
+
+
+def getContours(img, imgContour):
+    contours,hierarchy= cv2.findcontours(img,cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_NONE)
+
+    for cnt in contours:
+        area = cv2.contourArea(cnt)
+        areaMin = cv2.getTrackbarPos("Area", "Parameters")
+        if area› areaMin:
+            cv2.drawcontours (imgContour, cnt, -1, (255, 0, 255), 7)
+            peri = cv2.arcLength(cnt, True)
+            approx = cV2.approxPolyDP(cnt, 0.02 * peri, True)
+            print(len(approx))
+            x , y , w, h = cv2.boundingRect (approx)
+            cv2.rectangle(imgcontour, (x ,y ), (x + x, y + h ) , (0, 255, 0), 5)
+
+            cv2.putText (imgContour, "Points: " + str (len (approx)), (x + w + 20, y + 20), cv2.FONT_HERSHEY_COMPLEX, .7,
+            (0, 255, 0), 2)
+            V2.putText (imgContour, "Area: " + str(int (area)), (X + W + 20, y + 45), cv2.FONT_HERSHEY_COMPLEX, 0.7,
+            (0, 255, 0),2)
+
 
 while True:
 success, img = cap.read()
