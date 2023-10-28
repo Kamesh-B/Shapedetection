@@ -7,6 +7,9 @@ cap = cv2.VideoCapture(0)
 cap.set(3, framewidth)
 cap.set(4, frameHeight)
 
+cammidw = int (framewidth/2)
+cammidh = int (frameHeight/2)
+
 def empty(a):
     pass
 
@@ -51,7 +54,7 @@ def stackImages (scale, imgArray):
     return ver
 
 
-def getContours(img, imgContour):
+def getContours(img, imgContour,imgDist):
     _,contours, hierarchy = cv2.findContours(img, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
 
     for cnt in contours:
@@ -63,15 +66,33 @@ def getContours(img, imgContour):
             approx = cv2.approxPolyDP(cnt, 0.02 * peri, True)
             #print(len(approx))
             x , y , w, h = cv2.boundingRect (approx)
-            cv2.rectangle(imgContour, (x ,y ), (x + x, y + h ) , (0, 255, 0), 5)
+            midh = int ((h/2)+y)
+            midw = int ((w/2)+x)
+            
+            offsetx = (cammidw-midw)
+            offsety = (cammidh-midh)
+
+            cv2.rectangle(imgContour, (x ,y ), (x +w, y + h ) , (0, 255, 0), 5)
+            cv2.circle(imgContour, (midw , midh ), 5 , (0, 255, 0), -1)
+            cv2.circle(imgContour, (cammidw , cammidh ), 10 , (255, 255, 0), 6)
+
 
             cv2.putText (imgContour, "Points: " + str (len (approx)), (x + w + 20, y + 20), cv2.FONT_HERSHEY_COMPLEX, .7,
               (0, 255, 0), 2)
             cv2.putText (imgContour, "Area: " + str(int (area)), (x + w + 20, y + 45), cv2.FONT_HERSHEY_COMPLEX, 0.7,
             (0, 255, 0),2)
+            
 
-
-
+            cv2.rectangle(imgDist, (x ,y ), (x +w, y + h ) , (0, 255, 0), 5)
+            cv2.circle(imgDist, (midw , midh ), 5 , (255, 255, 0), -1)
+            cv2.circle(imgDist, (cammidw , cammidh ), 10 , (255, 255, 0), 6)
+            
+            cv2.arrowedLine(imgDist, (cammidw+150 ,cammidh+150 ), (midw+150, midh+150 ) , (0, 255, 0), 5)
+            
+            cv2.putText (imgDist, "X Axis Offset: " + str(int (offsetx)), (x + w + 20, y + 20), cv2.FONT_HERSHEY_COMPLEX, 0.7,
+            (0, 255, 0),2)
+            cv2.putText (imgDist, "Y Axis Offset: " + str(int (offsety)), (x + w + 20, y + 45), cv2.FONT_HERSHEY_COMPLEX, 0.7,
+            (0, 255, 0),2)
 
 
 while True:
@@ -80,6 +101,7 @@ while True:
     img = cv2.flip(img,0)
     
     imgContour= img.copy() 
+    imgDist= img.copy() 
 
     imgBlur = cv2.GaussianBlur (img, (7, 7), 1)
     imgGray = cv2.cvtColor (imgBlur, cv2.COLOR_BGR2GRAY)
@@ -90,10 +112,14 @@ while True:
     kernel = np.ones ((5, 5))
     imgDil = cv2. dilate (imgCanny, kernel, iterations=1)
     
-    getContours(imgDil,imgContour)
+    getContours(imgDil,imgContour,imgDist)
 
     imgStack = stackImages (0.8,([img, imgGray, imgCanny],
                                   [imgDil,imgContour,imgContour]))
+
+
+    cv2. imshow ("Distance", imgDist)
+
 
     cv2. imshow ("Result", imgStack)
     if cv2.waitKey(1) & 0xFF == ord('q'):
